@@ -16,6 +16,8 @@ namespace Engine
 
         private readonly List<Entity> entities;
 
+        public PhysicsManager PhysicsManager { get; }
+
         public Core(string name, int width, int height)
             : base(GameWindowSettings.Default, new NativeWindowSettings() { Title = name, Size = new Vector2i(width, height) })
         {
@@ -23,10 +25,13 @@ namespace Engine
 
             entities = new List<Entity>();
 
+            PhysicsManager = new PhysicsManager();
+
             MainCamera = AddEntity("Camera").AddComponent<Camera>();
 
             Player = AddEntity("Player");
             Player.AddComponent<Player>();
+            Player.AddComponent<Collider>();
         }
 
         public Entity AddEntity(string name = "Entity")
@@ -56,6 +61,14 @@ namespace Engine
             renderer.SetShader("Assets/Shaders/texture-vertex.vert", "Assets/Shaders/texture-fragment.frag");
             renderer.SetMesh("Assets/Models/square.obj");
             renderer.SetTexture("Assets/Textures/energy.jpg");
+
+            var obstacle = AddEntity("Obstacle");
+            obstacle.AddComponent<Collider>();
+            var obstacleRenderer = obstacle.AddComponent<Renderer>();
+            obstacleRenderer.SetShader("Assets/Shaders/texture-vertex.vert", "Assets/Shaders/texture-fragment.frag");
+            obstacleRenderer.SetMesh("Assets/Models/square.obj");
+            obstacleRenderer.SetTexture("Assets/Textures/energy.jpg");
+            obstacle.Transform.LocalPosition = new Vector3(2, 0, 0);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -81,6 +94,8 @@ namespace Engine
             {
                 entity.UpdateFrame(args);
             }
+
+            PhysicsManager.UpdateFrame(args);
         }
 
         protected override void OnResize(ResizeEventArgs args)
